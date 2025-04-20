@@ -2,12 +2,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  
   <meta charset="UTF-8" />
   <title>Vostola</title>
   <meta name="description" content="Vostola is a crypto HFT firm operating on global exchanges."/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" href="images/CleanerVA.ico" type="image/x-icon">
   <link rel="stylesheet" href="styles.css"/>
+  <!-- ───── Firebase v9 modular CDN (JS modules) ───── -->
+<script type="module">
+  /* ①  Import only what we need from the CDN */
+  import { initializeApp }       from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getFirestore,
+           doc, setDoc,
+           serverTimestamp }     from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+  import { getAnalytics }        from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+
+  /* ②  Your project‑specific keys (copied from the console) */
+  const firebaseConfig = {
+    apiKey:            "AIzaSyD5O7FRcyWESMw8L-HvQdHnMIFcQYNPclw",
+    authDomain:        "vostola-ai.firebaseapp.com",
+    projectId:         "vostola-ai",
+    storageBucket:     "vostola-ai.appspot.com",      // ← note the .app**spot**.com
+    messagingSenderId: "903404788748",
+    appId:             "1:903404788748:web:a13114c958c8d9e2872229",
+    measurementId:     "G-250P300NDX"
+  };
+
+  /* ③  Init Firebase */
+  const app       = initializeApp(firebaseConfig);
+  const db        = getFirestore(app);
+  getAnalytics(app);           // safe even if Analytics disabled
+
+  /* ④  Wire up the newsletter form (no changes needed in scripts.js!) */
+  const form   = document.querySelector(".newsletter-form");
+  const status = document.createElement("span");
+  form.after(status);          // put our status <span> right after the form
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = form.elements[0].value.trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      status.textContent = "Please enter a valid e‑mail 😊";
+      status.style.color = "orange";
+      return;
+    }
+
+    try {
+      await setDoc(
+        doc(db, "subscribers", email),          // doc id = e‑mail (dedupes)
+        { email, subscribedAt: serverTimestamp() }
+      );
+      status.textContent = "Thanks! You’re on the list 🎉";
+      status.style.color = "green";
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Sorry, something went wrong.";
+      status.style.color = "red";
+    }
+  });
+</script>
+<!-- ──────────────────────────────────────────────── -->
+
   <script defer src="scripts.js"></script>
 </head>
 <body>
